@@ -1,6 +1,6 @@
 # Easy Calculator
 
-![illustration](https://github.com/ASKoshelenko/ToDo/blob/main/Illustration%20ToDo/todo.png)
+![illustration](https://raw.githubusercontent.com/ASKoshelenko/calculator/main/public/easycalc.png)
 
 ## Project setup
 ```
