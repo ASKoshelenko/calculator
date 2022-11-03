@@ -1,5 +1,7 @@
 # Easy Calculator
 
+![illustration](https://github.com/ASKoshelenko/ToDo/blob/main/Illustration%20ToDo/todo.png)
+
 ## Project setup
 ```
 npm install
