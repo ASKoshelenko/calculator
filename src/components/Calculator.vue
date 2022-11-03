@@ -1,146 +1,84 @@
 <template>
   <h1>Easy Calc</h1>
   <div class="calculator">
-    <div @keyup="equal" class="display">{{current || '0'}}</div>
-    <div @click="undo" :disabled="!canUndo" class="btn undo">⟲</div>
-    <div @click="redo" :disabled="!canRedo" class="btn redo">⟳</div>
-    <div @click="clear" class="btn">AC</div>
-    <div @click="sign" class="btn">+/-</div>
-    <div @click="percent" class="btn">%</div>
-    <div @click="divide" class="btn operator">÷</div>
+    <div @keyup="equal" class="display">{{calculate(current) || '0'}}</div>
+    <div @click="undo" class="btn undo">⟲</div>
+    <div @click="redo" class="btn redo">⟳</div>
+    <div @click="clear" class="btn reset">Clear</div>
+    <div @click="append('/')" class="btn operator">÷</div>
     <div @click="append('7')" class="btn">7</div>
     <div @click="append('8')" class="btn">8</div>
     <div @click="append('9')" class="btn">9</div>
-    <div @click="times" class="btn operator">x</div>
+    <div @click="append('*')" class="btn operator">x</div>
     <div @click="append('4')" class="btn">4</div>
     <div @click="append('5')" class="btn">5</div>
     <div @click="append('6')" class="btn">6</div>
-    <div @click="minus" class="btn operator">-</div>
+    <div @click="append('-')" class="btn operator">-</div>
     <div @click="append('1')" class="btn">1</div>
     <div @click="append('2')" class="btn">2</div>
     <div @click="append('3')" class="btn">3</div>
-    <div @click="plus" class="btn operator">+</div>
+    <div @click="append('+')" class="btn operator">+</div>
     <div @click="append('0')" class="btn double-column">0</div>
-    <div @click="dot" class="btn">.</div>
-    <div @click="calculate" class="btn operator">=</div>
+    <div @click="append('.')" class="btn">.</div>
+    <div @click="append('=')" class="btn operator">=</div>
+
   </div>
 </template>
 
 <script>
-const computedDataHistory = []
-const history = []
-const historyIndex = history.length - 1;
 export default {
   name: 'easy-calc',
   data() {
     return {
-      previous: null,
       current: '',
-      operator: null,
-      operatorClicked: false,
-      //
-      newHistory: undefined,
-      computedData: computedDataHistory,
-      history: history,
-      historyIndex: historyIndex,
-      edited: false
     }
   },
-  computed: {
-    canUndo: function() {
-      return this.historyIndex > 0
-    },
-    canRedo: function() {
-      return this.history.length - 1 - this.historyIndex > 0
-    }
-  },
+  computed: {},
   methods: {
-    //
-    add() {
-      if (this.history) {
-        this.computedData.push()
-        this.newHistory = undefined
+    calculate(str) {
+      const chars = [
+        '0', '1', '2', '3', '4', 
+        '5', '6', '7', '8', '9',
+        '.', '=', '+', '-', '*', '/',
+      ]
+
+      if (!str.split('').every(char => chars.includes(char))) {
+        return 'NaN'
       }
-      this.history.push()
+      const expressions = str.split('=')
+      const last = expressions.length - 1
+
+      if (!last || !str) {
+        return str
+      }
+
+      return `${
+        expressions
+          .filter((_, idx) => idx !== last)
+          .reduce((acc, expression) => eval(`${acc}${expression}`), '0+')
+      }${expressions[last]}`
     },
     undo() {
-      console.log(history)
-      console.log(`current ${this.current}`)
-      console.log(`previous ${this.history[1]}`)
-      // this.current = this.history[1]
-      // console.log(`new current ${this.current}`)
-      
-
-      if (this.canUndo) {
-        this.historyIndex -= 1
-        this.current = this.history[this.historyIndex]
+      if (this.current) {
+        this.history.push(this.current.slice(-1))
+        this.current = this.current.slice(0,-1)
       }
     },
     redo() {
-      console.log(history)
-      console.log(`current ${this.current}`)
-      console.log(`next ${this.history[history.length - 1]}`)
-      if (this.canRedo) {
-        this.historyIndex += 1
-        this.current = this.history[this.historyIndex]
+      if (this.history.length) {
+        this.current = this.current + this.history.pop()
       }
     },
-
-    //
     clear() {
-      this.current = '';
+      this.current = ''
+      this.history = []
     },
-    sign() {
-      this.current = this.current.charAt(0) === '-' ? 
-        this.current.slice(1) : `-${this.current}`;
-    },
-    percent() {
-      this.current = `${parseFloat(this.current) / 100}`;
-    },
-    append(number) {
-      if (this.operatorClicked) {
-        this.current = '';
-        this.operatorClicked = false;
+    append(char) {
+      if (char == '=') {
+        this.history = []
       }
-      this.current = `${this.current}${number}`;
+      this.current = `${this.current}${char}`
     },
-    dot() {
-      if (this.current.indexOf('.') === -1) {
-        this.append('.');
-      }
-    },
-    setPrevious() {
-      this.previous = this.current;
-      this.operatorClicked = true;
-    },
-    divide() {
-      this.operator = (a, b) => a / b;
-      this.setPrevious();
-    },
-    times() {
-      this.operator = (a, b) => a * b;
-      this.setPrevious();
-    },
-    minus() {
-      this.operator = (a, b) => a - b;
-      this.setPrevious();
-    },
-    plus() {
-      this.operator = (a, b) => a + b;
-      this.setPrevious();
-    },
-    calculate() {
-      console.log(this.current)
-      this.current = `${this.operator(
-        parseFloat(this.previous),
-        parseFloat(this.current)        
-        )}`;
-        this.previous = null;
-        this.add(this.current);
-        console.log(this.current)
-        history.push(this.current)
-        console.log(history)
-      }
   }
 }
 </script>
@@ -204,5 +142,10 @@ export default {
   .redo {
     background-color: rgb(215, 235, 36);
     grid-column: 3/5;
+  }
+
+  .reset {
+    grid-column: 1/4;
+    background-color: rgb(243, 131, 87);
   }
 </style>
